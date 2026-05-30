@@ -28,10 +28,12 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
+import { Ionicons } from "@expo/vector-icons";
 import BottomNav from "../components/BottomNav";
 import { booksData } from "./constants/data";
 
 const { width, height } = Dimensions.get("window");
+
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 5;
@@ -187,10 +189,10 @@ const LessonImages = () => {
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backBtn}
+
+          className="p-1"
         >
-          <Text style={styles.backBtnText}>← Back</Text>
+          <Ionicons onPress={(() => router.back())} name="arrow-back" size={24} color="#1e293b" />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle} numberOfLines={1}>

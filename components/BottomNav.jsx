@@ -30,7 +30,7 @@ const BottomNav = () => {
             },
             {
                   label: "About",
-                  icon: "bar-chart-outline",
+                  icon: "man",
                   path: "/About",
             },
       ];

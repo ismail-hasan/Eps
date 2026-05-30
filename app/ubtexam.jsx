@@ -2,7 +2,7 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import { useEffect, useState } from 'react';
 import { Alert, Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomNav from '../components/BottomNav';
+import MainHeader from '../components/MainHeader';
 
 // ডেমো ডেটা: ২০টি Reading এবং ২০টি Listening (মোট ৪০টি কোশ্চেন)
 const GENERATED_QUESTIONS = [
@@ -139,31 +139,31 @@ export default function UbtExamApp() {
   /* ==================== SCREEN 1: MODEL TEST LIST (PORTRAIT) ==================== */
   if (screenMode === 'list') {
     return (
-      <SafeAreaView className="flex-1 bg-gray-100">
+      <>
+        <MainHeader title='UBT_EXAM' />
 
-        <View className="bg-[#0080C0] p-5 items-center shadow-md">
-          <Text className="text-white text-lg font-bold tracking-wide">EPS-TOPIK UBT Exams</Text>
-        </View>
+        <SafeAreaView className="flex-1 bg-gray-100">
 
-        <ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 20 }}>
-          <View className="gap-3">
-            {Array.from({ length: 10 }, (_, i) => i + 1).map((id) => (
-              <TouchableOpacity
-                key={id}
-                activeOpacity={0.7}
-                onPress={() => startExam(id)}
-                className="w-full bg-white rounded-xl px-5 py-4 border border-gray-200 shadow-sm flex-row justify-between items-center"
-              >
-                <Text className="text-gray-800 font-bold text-base">Model Test {id}</Text>
-                <View className="bg-[#E4F0F8] px-3 py-1.5 rounded-lg flex-row items-center gap-1">
-                  <Text className="text-[#0080C0] text-xs font-bold">Start</Text>
-                  <Text className="text-[#0080C0] text-xs font-bold">➔</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+          <ScrollView className="flex-1 px-4" contentContainerStyle={{ paddingBottom: 20 }}>
+            <View className="gap-3">
+              {Array.from({ length: 10 }, (_, i) => i + 1).map((id) => (
+                <TouchableOpacity
+                  key={id}
+                  activeOpacity={0.7}
+                  onPress={() => startExam(id)}
+                  className="w-full bg-white rounded-xl px-5 py-4 border border-gray-200 shadow-sm flex-row justify-between items-center"
+                >
+                  <Text className="text-gray-800 font-bold text-base">Model Test {id}</Text>
+                  <View className="bg-[#E4F0F8] px-3 py-1.5 rounded-lg flex-row items-center gap-1">
+                    <Text className="text-[#0080C0] text-xs font-bold">Start</Text>
+                    <Text className="text-[#0080C0] text-xs font-bold">➔</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </>
     );
   }
 

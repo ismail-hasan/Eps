@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 
+import { Ionicons } from "@expo/vector-icons";
 import { booksData } from "./constants/data";
 
 export default function BookLesson() {
@@ -35,7 +36,7 @@ export default function BookLesson() {
           onPress={() => router.back()}
           className="mr-4 bg-gray-100 px-3 py-1.5 rounded-lg"
         >
-          <Text className="text-gray-700 font-bold text-xs">◀ Back</Text>
+          <Ionicons onPress={(() => router.back())} name="arrow-back" size={24} color="#1e293b" />
         </TouchableOpacity>
 
         <Text className="text-lg font-bold text-gray-800">

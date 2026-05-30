@@ -1,5 +1,4 @@
-import { Link } from 'expo-router';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import BottomNav from '../components/BottomNav';
 
 const About = () => {
@@ -9,7 +8,7 @@ const About = () => {
       const lastUpdated = "May 2026";
 
       return (
-            <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="bg-gray-50">
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="bg-gray-50 mt-6">
                   <View className="flex-1 px-5 py-10 justify-between">
 
                         {/* Top Header Section */}
@@ -18,7 +17,7 @@ const About = () => {
                               <View className="w-24 h-24 bg-red-500 rounded-3xl items-center justify-center shadow-md mb-4 border-b-4 border-blue-700">
                                     <Text className="text-white text-3xl font-black">EPS</Text>
                               </View>
-                              <Text className="text-3xl font-bold text-gray-800 tracking-wide">EPS TOPIK</Text>
+                              <Text className="text-3xl font-bold text-gray-800 tracking-wide">EPS TOPIK HERO</Text>
                               <Text className="text-blue-600 font-medium mt-1">কোরিয়ান ভাষা শিক্ষার বিশ্বস্ত মাধ্যম</Text>
                         </View>
 
@@ -53,7 +52,7 @@ const About = () => {
 
                         {/* Footer Navigation Section */}
                         <View className="items-center mb-6">
-                            
+
 
                               <Text className="text-gray-400 text-xs mt-6">
                                     © {new Date().getFullYear()} EPS TOPIK Bangladesh. All rights reserved.

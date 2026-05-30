@@ -22,6 +22,8 @@ const features = [
     subtitle: "Read all chapters",
     icon: <MaterialCommunityIcons name="book-open-variant" size={28} color="#2563eb" />,
     bg: "bg-blue-100",
+    route: "/bookNav",
+
   },
   {
     id: 2,
@@ -29,20 +31,22 @@ const features = [
     subtitle: "Test knowledge",
     icon: <Ionicons name="help-circle" size={28} color="#7c3aed" />,
     bg: "bg-purple-100",
+    route: "/quiz",
+
   },
   {
     id: 3,
     title: "Vocabulary",
     route: "/vocabulary",
     subtitle: "Important words",
-    icon: <MaterialCommunityIcons name="format-list-bulleted" size={28} color="#ea580c" />,
+    icon: <MaterialCommunityIcons name="book-alphabet" size={28} color="#ea580c" />,
     bg: "bg-orange-100",
   },
   {
     id: 4,
     title: "Color Blind",
     subtitle: "Full practice",
-    icon: <Ionicons name="checkbox" size={28} color="#16a34a" />,
+    icon: <Ionicons name="eye-off-sharp" size={28} color="#16a34a" />,
     bg: "bg-green-100",
     route: "/colorblind",
   },
@@ -51,14 +55,14 @@ const features = [
     title: "UBT-TEST",
     route: "/ubtexam",
     subtitle: "Track journey",
-    icon: <Ionicons name="bar-chart" size={28} color="#0284c7" />,
+    icon: <Ionicons name="document-text-outline" size={28} color="#0284c7" />,
     bg: "bg-sky-100",
   },
   {
     id: 6,
     title: "About",
     subtitle: "Saved items",
-    icon: <Ionicons name="star" size={28} color="#e11d48" />,
+    icon: <Ionicons name="man" size={28} color="#e11d48" />,
     bg: "bg-rose-100",
     route: "/About",
 
@@ -169,7 +173,7 @@ const Home = () => {
 
       {/* Bottom Navigation */}
       <BottomNav />
-    </SafeAreaView> 
+    </SafeAreaView>
   );
 };
 
