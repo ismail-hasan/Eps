@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ScrollView,
@@ -146,22 +145,7 @@ const QuizPage = () => {
     <View className="flex-1 bg-gray-100 justify-between">
 
       {/* WHITE TOP NAVIGATION BAR */}
-      <View className="bg-white px-5 pt-14 pb-4 flex-row items-center justify-between border-b border-gray-100">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="p-1"
-        >
-          <Ionicons name="arrow-back" size={24} color="#1e293b" />
-        </TouchableOpacity>
-
-        <Text className="text-[#1e293b] text-xl font-bold flex-1 ml-5">
-          Quiz
-        </Text>
-
-        <TouchableOpacity className="p-1">
-          <Ionicons name="help-circle-outline" size={24} color="#1e293b" />
-        </TouchableOpacity>
-      </View>
+      {/* //top  */}
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
 
