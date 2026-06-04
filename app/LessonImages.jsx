@@ -203,7 +203,7 @@ export default function LessonImages() {
         renderItem={({ item }) => (
           <ListImageItem uri={item.image} onPress={() => openImage(item.image)} />
         )}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 10 }}
         showsVerticalScrollIndicator={false}
       />
 

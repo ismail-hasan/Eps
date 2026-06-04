@@ -34,7 +34,7 @@ export default function BookLesson() {
 
       setCountry(found);
     } catch (err) {
-      console.log("Error:", err);
+      // console.log("Error:", err);
     } finally {
       setLoading(false);
     }

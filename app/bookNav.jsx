@@ -30,7 +30,7 @@ export default function NavBook() {
       const data = await res.json();
       setBooks(data);
     } catch (err) {
-      console.log("API Error:", err);
+      // console.log("API Error:", err);
     } finally {
       setLoading(false);
     }
