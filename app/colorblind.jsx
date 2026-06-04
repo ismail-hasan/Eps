@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
       ActivityIndicator,
       Image,
@@ -9,56 +10,58 @@ import {
       Text,
       TouchableOpacity,
       useWindowDimensions,
-      View
-} from 'react-native';
+      View,
+} from "react-native";
 
-const API_URL = 'https://eps-backend.vercel.app/color';
+// ১. প্রথমে একটি Query Client তৈরি করে নিলাম
+const queryClient = new QueryClient();
 
-const Colorblind = () => {
+const API_URL = "https://eps-backend.vercel.app/color";
+
+// ২. API থেকে ডেটা নিয়ে আসার পিওর ফাংশন
+const fetchColorQuizData = async () => {
+      const response = await fetch(API_URL);
+      if (!response.ok) throw new Error("Network error");
+      const data = await response.json();
+
+      // ডেটা অ্যারে আকারে আছে কিনা তা নিশ্চিত করা
+      return Array.isArray(data) ? data : data.data || Object.values(data);
+};
+
+// ==========================================
+// মূল কালারব্লাইন্ড স্ক্রিন কন্টেন্ট
+// ==========================================
+const ColorblindContent = () => {
       const router = useRouter();
       const { width } = useWindowDimensions();
+
+      // TanStack Query দিয়ে ডেটা ফেচিং (অটোমেটিক ক্যাশিং ও লোডিং হ্যান্ডেল করবে)
+      const { data: serverQuizData, isLoading: isApiLoading, error } = useQuery({
+            queryKey: ["colorQuizData"],
+            queryFn: fetchColorQuizData,
+            staleTime: 1000 * 60 * 10, // ১০ মিনিট ডেটা ক্যাশ থাকবে যাতে পেজ বারবার ওপেন করলেও স্লো না হয়
+      });
 
       const [shuffledQuiz, setShuffledQuiz] = useState([]);
       const [currentIndex, setCurrentIndex] = useState(0);
       const [selectedOption, setSelectedOption] = useState(null);
       const [score, setScore] = useState(0);
       const [showResult, setShowResult] = useState(false);
-      const [loading, setLoading] = useState(true);
-      const [imageLoading, setImageLoading] = useState(true); // ইমেজের জন্য নতুন লোডিং স্টেট
+      const [imageLoading, setImageLoading] = useState(true);
 
+      // সার্ভার থেকে প্রথমবার ডেটা আসলে বা রিস্টার্ট দিলে প্রশ্নগুলো র্যান্ডমাইজ করার এফেক্ট
       useEffect(() => {
-            fetchQuizData();
-      }, []);
+            if (serverQuizData && serverQuizData.length > 0) {
+                  generateRandomQuestions(serverQuizData);
+            }
+      }, [serverQuizData]);
 
       // পরবর্তী প্রশ্নে গেলে ইমেজের লোডার রিসেট করার জন্য
       useEffect(() => {
             setImageLoading(true);
       }, [currentIndex]);
 
-      const fetchQuizData = async () => {
-            setLoading(true);
-            try {
-                  const response = await fetch(API_URL);
-                  const data = await response.json();
-
-                  const actualArray = Array.isArray(data)
-                        ? data
-                        : (data.data || Object.values(data));
-
-                  generateRandomQuestions(actualArray);
-            } catch (error) {
-                  console.error("Data fetching error: ", error);
-            } finally {
-                  setLoading(false);
-            }
-      };
-
       const generateRandomQuestions = (quizData) => {
-            if (!quizData || !Array.isArray(quizData) || quizData.length === 0) {
-                  setShuffledQuiz([]);
-                  return;
-            }
-
             const randomized = [...quizData].sort(() => Math.random() - 0.5);
             setShuffledQuiz(randomized);
             setCurrentIndex(0);
@@ -67,11 +70,12 @@ const Colorblind = () => {
             setShowResult(false);
       };
 
-      if (loading || shuffledQuiz.length === 0) {
+      // এপিআই লোড হওয়া বা কোনো ডেটা না থাকার ইনিশিয়াল স্টেট চেক
+      if (isApiLoading || shuffledQuiz.length === 0) {
             return (
-                  <SafeAreaView style={{ flex: 1, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
+                  <SafeAreaView style={{ flex: 1, backgroundColor: "white", justifyContent: "center", alignItems: "center" }}>
                         <ActivityIndicator size="large" color="#2563eb" />
-                        <Text style={{ color: '#6b7280', marginTop: 8 }}>Loading questions...</Text>
+                        <Text style={{ color: "#6b7280", marginTop: 8 }}>Loading questions...</Text>
                   </SafeAreaView>
             );
       }
@@ -79,21 +83,21 @@ const Colorblind = () => {
       const currentQuiz = shuffledQuiz[currentIndex];
 
       const isCorrect = (option) => {
-            return String(option).trim() === String(currentQuiz.answer).trim();
+            return String(option).trim() === String(currentQuiz?.answer).trim();
       };
 
       const handleSelect = (option) => {
             if (selectedOption !== null) return;
             setSelectedOption(option);
             if (isCorrect(option)) {
-                  setScore(prev => prev + 1);
+                  setScore((prev) => prev + 1);
             }
       };
 
       const handleNext = () => {
             setSelectedOption(null);
             if (currentIndex < shuffledQuiz.length - 1) {
-                  setCurrentIndex(prev => prev + 1);
+                  setCurrentIndex((prev) => prev + 1);
             } else {
                   setShowResult(true);
             }
@@ -114,8 +118,8 @@ const Colorblind = () => {
       };
 
       const formatOptionText = (option) => {
-            if (option === 'Nothing is visible') return 'Nothing is visible';
-            if (option === 'Patient') return 'No numbers';
+            if (option === "Nothing is visible") return "Nothing is visible";
+            if (option === "Patient") return "No numbers";
             return option;
       };
 
@@ -123,22 +127,23 @@ const Colorblind = () => {
 
       return (
             <SafeAreaView className="flex-1 bg-white">
-
                   {/* HEADER */}
                   <View className="bg-blue-600 py-4 px-4 flex-row justify-between items-center">
                         <TouchableOpacity onPress={() => router.back()}>
                               <Ionicons name="arrow-back" size={24} color="white" />
                         </TouchableOpacity>
-
-                        <Text className="text-white text-lg font-bold">
-                              Color blindness Test
-                        </Text>
-
+                        <Text className="text-white text-lg font-bold">Color blindness Test</Text>
                         <Ionicons name="information-circle-outline" size={24} color="white" />
                   </View>
 
-                  {/* RESULT */}
-                  {showResult ? (
+                  {/* ERROR HANDLING */}
+                  {error ? (
+                        <View className="flex-1 justify-center items-center p-6">
+                              <Ionicons name="alert-circle" size={48} color="#dc2626" />
+                              <Text className="text-red-600 font-bold mt-2">Failed to load quiz data</Text>
+                        </View>
+                  ) : showResult ? (
+                        /* RESULT SCREEN */
                         <View className="flex-1 justify-center items-center bg-gray-50 px-6">
                               <Text className="text-2xl font-bold text-gray-800">Test Completed!</Text>
                               <Text className="text-lg mt-2 text-gray-600">
@@ -146,18 +151,15 @@ const Colorblind = () => {
                               </Text>
 
                               <TouchableOpacity
-                                    onPress={() => generateRandomQuestions(shuffledQuiz)}
+                                    onPress={() => generateRandomQuestions(serverQuizData)}
                                     className="bg-blue-600 px-8 py-4 rounded-xl mt-6 w-full"
                               >
-                                    <Text className="text-white text-center font-bold">
-                                          Restart Quiz
-                                    </Text>
+                                    <Text className="text-white text-center font-bold">Restart Quiz</Text>
                               </TouchableOpacity>
                         </View>
                   ) : (
+                        /* ACTIVE QUIZ SCREEN */
                         <ScrollView className="flex-1 bg-gray-50 px-5 py-6">
-
-                              {/* QUESTION COUNTER */}
                               <Text className="text-gray-500">
                                     Question: {currentIndex + 1} / {shuffledQuiz.length}
                               </Text>
@@ -167,27 +169,30 @@ const Colorblind = () => {
                               </Text>
 
                               {/* IMAGE CARD WITH LOADING SPIN */}
-                              <View className="bg-white p-6 rounded-2xl items-center justify-center mb-6 border border-gray-200" style={{ minHeight: imageSize + 48 }}>
-                                    
-                                    {/* Image Spinner — শুধুমাত্র লোড হওয়ার সময় দেখাবে */}
+                              <View
+                                    className="bg-white p-6 rounded-2xl items-center justify-center mb-6 border border-gray-200"
+                                    style={{ minHeight: imageSize + 48 }}
+                              >
                                     {imageLoading && (
-                                          <View style={{ position: 'absolute', zIndex: 1 }}>
+                                          <View style={{ position: "absolute", zIndex: 1 }}>
                                                 <ActivityIndicator size="small" color="#2563eb" />
                                           </View>
                                     )}
 
-                                    <Image
-                                          source={{ uri: currentQuiz.image }}
-                                          style={{ width: imageSize, height: imageSize }}
-                                          resizeMode="contain"
-                                          onLoadStart={() => setImageLoading(true)}
-                                          onLoadEnd={() => setImageLoading(false)}
-                                    />
+                                    {currentQuiz?.image && (
+                                          <Image
+                                                source={{ uri: currentQuiz.image }}
+                                                style={{ width: imageSize, height: imageSize }}
+                                                resizeMode="contain"
+                                                onLoadStart={() => setImageLoading(true)}
+                                                onLoadEnd={() => setImageLoading(false)}
+                                          />
+                                    )}
                               </View>
 
                               {/* OPTIONS */}
                               <View style={{ gap: 12 }}>
-                                    {currentQuiz.options.map((option, index) => (
+                                    {currentQuiz?.options?.map((option, index) => (
                                           <TouchableOpacity
                                                 key={index}
                                                 disabled={selectedOption !== null}
@@ -208,16 +213,22 @@ const Colorblind = () => {
                                           className="bg-blue-600 py-4 rounded-xl mt-6 mb-10"
                                     >
                                           <Text className="text-white text-center font-bold text-base">
-                                                {currentIndex === shuffledQuiz.length - 1
-                                                      ? "View Results"
-                                                      : "Next Question →"}
+                                                {currentIndex === shuffledQuiz.length - 1 ? "View Results" : "Next Question →"}
                                           </Text>
                                     </TouchableOpacity>
                               )}
-
                         </ScrollView>
                   )}
             </SafeAreaView>
+      );
+};
+
+// ৩. রুট এক্সপোর্ট: প্রোভাইডার দিয়ে মুড়িয়ে স্ক্রিন রিটার্ন করা
+const Colorblind = () => {
+      return (
+            <QueryClientProvider client={queryClient}>
+                  <ColorblindContent />
+            </QueryClientProvider>
       );
 };
 

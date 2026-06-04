@@ -1,12 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
+import React, { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
   Clipboard,
   FlatList,
   Keyboard,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -14,7 +16,18 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// ─── Word Card ─────────────────────────────────────────────────────────────
+// ১. Query Client তৈরি
+const queryClient = new QueryClient();
+
+// ২. API থেকে ডেটা আনা
+const fetchVocabularyData = async () => {
+  const response = await fetch("https://eps-backend.vercel.app/vocabulary");
+  if (!response.ok) throw new Error("Network response error");
+  const data = await response.json();
+  return data || [];
+};
+
+// ─── Word Card Component ─────────────────────────────────────────
 const WordCard = React.memo(({ item, onCopy, copiedId }) => (
   <View
     style={{
@@ -42,7 +55,6 @@ const WordCard = React.memo(({ item, onCopy, copiedId }) => (
     </View>
 
     <View style={{ flexDirection: "row", alignItems: "center" }}>
-      {/* Copy Icon - Only copies the Korean word */}
       <TouchableOpacity
         onPress={() => onCopy(item)}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -58,32 +70,30 @@ const WordCard = React.memo(({ item, onCopy, copiedId }) => (
   </View>
 ));
 
-// ─── Main Screen ──────────────────────────────────────────────────────────
-export default function Vocabulary() {
+// ─── Vocabulary Screen Content ──────────────────────────────────────────
+const VocabularyContent = () => {
   const navigation = useNavigation();
 
-  const [words, setWords] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // TanStack Query দিয়ে ডেটা ফেচিং
+  const { data: words = [], isLoading: isApiLoading, error } = useQuery({
+    queryKey: ["vocabularyData"],
+    queryFn: fetchVocabularyData,
+    staleTime: 1000 * 60 * 15,
+  });
+
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   const searchInputRef = useRef(null);
   const searchWidthAnim = useRef(new Animated.Value(0)).current;
 
-  // ── API থেকে ডাটা ফেচ করা ──
-  useEffect(() => {
-    fetch("https://eps-backend.vercel.app/vocabulary")
-      .then((res) => res.json())
-      .then((data) => {
-        setWords(data || []);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching vocabulary:", err);
-        setLoading(false);
-      });
-  }, []);
+  // ── অটোমেটিক ইউনিক ক্যাটাগরি লিস্ট তৈরি ──
+  const categories = React.useMemo(() => {
+    const list = new Set(words.map((w) => w.category).filter(Boolean));
+    return ["All", ...Array.from(list)];
+  }, [words]);
 
   // ── Open / Close Search ──
   const openSearch = () => {
@@ -106,13 +116,17 @@ export default function Vocabulary() {
     }).start();
   };
 
-  // ── Filtered Data (সার্চ ফিল্টারিং) ──
+  // ── Filtered Data ──
   const displayData = useCallback(() => {
-    let list = words;
+    let filteredList = words;
+
+    if (selectedCategory !== "All") {
+      filteredList = filteredList.filter((w) => w.category === selectedCategory);
+    }
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
-      list = list.filter(
+      filteredList = filteredList.filter(
         (w) =>
           (w.korean && w.korean.includes(q)) ||
           (w.romanized && w.romanized.toLowerCase().includes(q)) ||
@@ -121,10 +135,10 @@ export default function Vocabulary() {
       );
     }
 
-    return list;
-  }, [words, searchQuery]);
+    return filteredList;
+  }, [words, selectedCategory, searchQuery]);
 
-  // ── Copy Function (শুধুমাত্র কোরিয়ান শব্দ কপি হবে) ──
+  // ── Copy Function ──
   const handleCopy = useCallback((item) => {
     Clipboard.setString(item.korean);
     setCopiedId(item.id);
@@ -152,7 +166,6 @@ export default function Vocabulary() {
           minHeight: 56,
         }}
       >
-        {/* Back Button */}
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -161,14 +174,12 @@ export default function Vocabulary() {
           <Ionicons name="arrow-back" size={24} color="#1A1A2E" />
         </TouchableOpacity>
 
-        {/* Title — hide when search is open */}
         {!isSearchOpen && (
           <Text style={{ fontSize: 20, fontWeight: "800", color: "#1A1A2E", flex: 1 }}>
             Vocabulary
           </Text>
         )}
 
-        {/* Animated Search Input */}
         {isSearchOpen && (
           <Animated.View style={{ width: animatedSearchWidth, overflow: "hidden" }}>
             <TextInput
@@ -194,7 +205,6 @@ export default function Vocabulary() {
 
         <View style={{ flex: isSearchOpen ? 1 : 0 }} />
 
-        {/* Search / Close Icon */}
         <TouchableOpacity
           onPress={isSearchOpen ? closeSearch : openSearch}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -209,7 +219,7 @@ export default function Vocabulary() {
       </View>
 
       {/* ── Banner Card ── */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16 }}>
+      <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 }}>
         <View
           style={{
             backgroundColor: "#FF8C00",
@@ -220,49 +230,83 @@ export default function Vocabulary() {
             overflow: "hidden",
           }}
         >
-          <View
-            style={{
-              position: "absolute", right: -20, top: -20,
-              width: 100, height: 100, borderRadius: 50,
-              backgroundColor: "rgba(255,255,255,0.12)",
-            }}
-          />
-          <View
-            style={{
-              position: "absolute", right: 30, bottom: -30,
-              width: 80, height: 80, borderRadius: 40,
-              backgroundColor: "rgba(255,255,255,0.08)",
-            }}
-          />
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 17, fontWeight: "800", color: "#FFFFFF", marginBottom: 4 }}>
               Important Vocabulary
             </Text>
             <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", lineHeight: 18 }}>
-              Essential words and phrases{"\n"}you must know.
+              Essential words and phrases you must know.
             </Text>
           </View>
           <View
             style={{
               backgroundColor: "rgba(255,255,255,0.2)",
-              borderRadius: 12, width: 56, height: 56,
+              borderRadius: 12, width: 48, height: 48,
               justifyContent: "center", alignItems: "center",
             }}
           >
-            <Ionicons name="book" size={28} color="#FFFFFF" />
+            <Ionicons name="book" size={24} color="#FFFFFF" />
           </View>
         </View>
       </View>
 
-      {/* ── Word List / Loading Handling ── */}
-      {loading ? (
+      {/* ── ক্যাটাগরি সেকশন (ব্যানারের সাথে ফিক্সড ও সুন্দরভাবে সাজানো) ── */}
+      {!isApiLoading && !error && words.length > 0 && (
+        <View style={{ paddingVertical: 8, paddingHorizontal: 16 }}>
+          <Text style={{ fontSize: 13, fontWeight: "700", color: "#64748B", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+            Categories
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingRight: 16 }}
+          >
+            {categories.map((cat) => {
+              const isActive = selectedCategory === cat;
+              return (
+                <TouchableOpacity
+                  key={cat}
+                  onPress={() => setSelectedCategory(cat)}
+                  style={{
+                    paddingHorizontal: 16,
+                    paddingVertical: 7,
+                    borderRadius: 12,
+                    backgroundColor: isActive ? "#1A1A2E" : "#F1F5F9", // অ্যাক্টিভ হলে ডার্ক ব্লু থিম যা দেখতে প্রিমিয়াম লাগে
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: "600",
+                      color: isActive ? "#FFFFFF" : "#475569",
+                      textTransform: "capitalize"
+                    }}
+                  >
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
+
+      {/* ── Word List / Loading / Error Handling ── */}
+      {isApiLoading ? (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <ActivityIndicator size="large" color="#FF8C00" />
+        </View>
+      ) : error ? (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <Ionicons name="cloud-offline-outline" size={40} color="#CBD5E1" />
+          <Text style={{ color: "#94A3B8", marginTop: 8, fontWeight: "500" }}>
+            Failed to load data from server
+          </Text>
         </View>
       ) : (
         <FlatList
           data={data}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id?.toString()}
           renderItem={({ item }) => (
             <WordCard
               item={item}
@@ -285,4 +329,15 @@ export default function Vocabulary() {
       )}
     </SafeAreaView>
   );
-}
+};
+
+// ৩. মূল এক্সপোর্ট
+const Vocabulary = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <VocabularyContent />
+    </QueryClientProvider>
+  );
+};
+
+export default Vocabulary;

@@ -4,11 +4,10 @@ import { Text, TouchableOpacity, View } from 'react-native';
 
 const MainHeader = ({
       title = "Quiz",
-      subtitle1 = "নিজের জ্ঞান যাচাই করুন",
-      subtitle2 = "নিজের জ্ঞান যাচাই করুন",
+      subtitle1 = "",
       leftIcon = "arrow-back",
       rightIcon = "help-circle-outline",
-      cardIcon = "trophy",
+      cardIcon = "",
       onLeftPress, // বাইরে থেকে দিলে সেটা কাজ করবে
       onRightPress
 }) => {
@@ -41,14 +40,12 @@ const MainHeader = ({
                   <View className="bg-blue-600 m-4 p-5 rounded-[24px] flex-row items-center justify-between shadow-sm">
                         <View className="flex-1 pr-4">
                               <Text className="text-white text-xl font-bold tracking-wide">
-                                    {title} App
+                                    {title}
                               </Text>
                               <Text className="text-blue-100 text-xs mt-1 leading-4 opacity-90">
                                     {subtitle1}
                               </Text>
-                              <Text className="text-blue-100 text-xs mt-1 leading-4 opacity-90">
-                                    {subtitle2}
-                              </Text>
+
                         </View>
                         <View className="w-12 h-12 bg-white/15 rounded-2xl items-center justify-center">
                               <Ionicons name={cardIcon} size={24} color="white" />

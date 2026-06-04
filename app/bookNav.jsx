@@ -16,9 +16,12 @@ import MainHeader from "../components/MainHeader";
 
 const BASE_URL = "https://eps-backend.vercel.app";
 
+// 🚀 গ্লোবাল মেমোরি ক্যাশ ভ্যারিয়েবল (এটি কম্পোনেন্টের বাইরে থাকায় অ্যাপ চলাকালীন ডাটা একবার লোড হলে সেভ থাকবে)
+let cachedBooksData = null;
+
 export default function NavBook() {
-  const [books, setBooks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [books, setBooks] = useState(cachedBooksData || []); // ⚡ যদি আগে থেকেই ক্যাশে ডাটা থাকে, তবে সরাসরি সেটা সেট হবে (০ সেকেন্ড লোডিং)
+  const [loading, setLoading] = useState(!cachedBooksData);  // ⚡ ক্যাশে ডাটা থাকলে লোডিং স্পিনার দেখাবেই না
 
   useEffect(() => {
     fetchBooks();
@@ -28,6 +31,9 @@ export default function NavBook() {
     try {
       const res = await fetch(`${BASE_URL}/book`);
       const data = await res.json();
+
+      // 🔒 ডাটা গ্লোবাল ক্যাশে সেভ করে রাখা হলো
+      cachedBooksData = data;
       setBooks(data);
     } catch (err) {
       // console.log("API Error:", err);
@@ -38,7 +44,7 @@ export default function NavBook() {
 
   return (
     <>
-      <MainHeader title="Book" subtitle1="" />
+      <MainHeader title="Reading Hub" subtitle1="Keep learning, keep growing" cardIcon="book-outline" />
 
       <SafeAreaView
         className="flex-1 bg-gray-50"
@@ -59,7 +65,7 @@ export default function NavBook() {
           ) : (
             <FlatList
               data={books}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item) => (item.id || item._id || "").toString()}
               numColumns={2}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => (
@@ -69,7 +75,7 @@ export default function NavBook() {
                     router.push({
                       pathname: "/BookLesson",
                       params: {
-                        countryId: item.id,
+                        countryId: item.id || item._id,
                       },
                     })
                   }
@@ -77,7 +83,10 @@ export default function NavBook() {
                 >
                   <View className="w-16 h-11 rounded-lg overflow-hidden border border-gray-200 mb-3">
                     <Image
-                      source={{ uri: item.flag }}
+                      source={{
+                        uri: item.flag,
+                        cache: "force-cache" // ⚡ ইমেজ বারবার লোড হওয়া বন্ধ করবে
+                      }}
                       className="w-full h-full"
                       resizeMode="cover"
                     />

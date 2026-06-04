@@ -1,4 +1,5 @@
-import { ScrollView, Text, View } from 'react-native';
+import { Image, ScrollView, Text, View } from 'react-native'; // 1. Imported Image here
+import img from '../assets/images/logo.png';
 import BottomNav from '../components/BottomNav';
 
 const About = () => {
@@ -12,11 +13,9 @@ const About = () => {
                   <View className="flex-1 px-5 pt-1 justify-between">
 
                         {/* Top Header Section */}
-                        <View className="items-center mt-6">
-                              {/* EPS TOPIK Matching Logo Placeholder (Korean Flag Color Vibe) */}
-                              <View className="w-24 h-24 bg-red-500 rounded-3xl items-center justify-center shadow-md mb-4 border-b-4 border-blue-700">
-                                    <Text className="text-white text-3xl font-black">EPS</Text>
-                              </View>
+                        <View className="items-center mt-16">
+
+                              <Image source={img} className="w-20 h-20 mb-2" resizeMode="contain" />
                               <Text className="text-3xl font-bold text-gray-800 tracking-wide">EPS TOPIK HERO</Text>
                               <Text className="text-blue-600 text-center font-medium mt-1">Your Trusted Companion for Korean Language Learning</Text>
                         </View>
