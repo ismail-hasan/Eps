@@ -764,7 +764,7 @@
 
 import { useEffect, useState } from "react";
 
-const BASE_URL = "https://react-bulk-backe-end.vercel.app/book";
+const BASE_URL = "https://eps-backend.vercel.app/book";
 
 export const useBooks = () => {
   const [booksData, setBooksData] = useState([]);

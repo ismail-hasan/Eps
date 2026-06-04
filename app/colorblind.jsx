@@ -12,7 +12,7 @@ import {
       View
 } from 'react-native';
 
-const API_URL = 'https://react-bulk-backe-end.vercel.app/color';
+const API_URL = 'https://eps-backend.vercel.app/color';
 
 const Colorblind = () => {
       const router = useRouter();
@@ -24,10 +24,16 @@ const Colorblind = () => {
       const [score, setScore] = useState(0);
       const [showResult, setShowResult] = useState(false);
       const [loading, setLoading] = useState(true);
+      const [imageLoading, setImageLoading] = useState(true); // ইমেজের জন্য নতুন লোডিং স্টেট
 
       useEffect(() => {
             fetchQuizData();
       }, []);
+
+      // পরবর্তী প্রশ্নে গেলে ইমেজের লোডার রিসেট করার জন্য
+      useEffect(() => {
+            setImageLoading(true);
+      }, [currentIndex]);
 
       const fetchQuizData = async () => {
             setLoading(true);
@@ -63,16 +69,15 @@ const Colorblind = () => {
 
       if (loading || shuffledQuiz.length === 0) {
             return (
-                  <SafeAreaView className="flex-1 bg-white justify-center items-center">
+                  <SafeAreaView style={{ flex: 1, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
                         <ActivityIndicator size="large" color="#2563eb" />
-                        <Text className="text-gray-500 mt-2">প্রশ্ন লোড হচ্ছে...</Text>
+                        <Text style={{ color: '#6b7280', marginTop: 8 }}>Loading questions...</Text>
                   </SafeAreaView>
             );
       }
 
       const currentQuiz = shuffledQuiz[currentIndex];
 
-      // ✅ KEY FIX: .answer ব্যবহার করা হচ্ছে, String convert করে compare
       const isCorrect = (option) => {
             return String(option).trim() === String(currentQuiz.answer).trim();
       };
@@ -108,10 +113,9 @@ const Colorblind = () => {
             return "text-gray-400";
       };
 
-      // ✅ FIX: API তে "Nothing is visible" আছে তাই সেটা match করা হচ্ছে
       const formatOptionText = (option) => {
-            if (option === 'Nothing is visible') return 'কিছুই বুঝা যাচ্ছে না';
-            if (option === 'Patient') return 'কোনো সংখ্যা নেই';
+            if (option === 'Nothing is visible') return 'Nothing is visible';
+            if (option === 'Patient') return 'No numbers';
             return option;
       };
 
@@ -127,7 +131,7 @@ const Colorblind = () => {
                         </TouchableOpacity>
 
                         <Text className="text-white text-lg font-bold">
-                              কালার ব্লাইন্ডনেস টেস্ট
+                              Color blindness Test
                         </Text>
 
                         <Ionicons name="information-circle-outline" size={24} color="white" />
@@ -136,9 +140,9 @@ const Colorblind = () => {
                   {/* RESULT */}
                   {showResult ? (
                         <View className="flex-1 justify-center items-center bg-gray-50 px-6">
-                              <Text className="text-2xl font-bold text-gray-800">টেস্ট শেষ!</Text>
+                              <Text className="text-2xl font-bold text-gray-800">Test Completed!</Text>
                               <Text className="text-lg mt-2 text-gray-600">
-                                    স্কোর: {score} / {shuffledQuiz.length}
+                                    Score: {score} / {shuffledQuiz.length}
                               </Text>
 
                               <TouchableOpacity
@@ -146,7 +150,7 @@ const Colorblind = () => {
                                     className="bg-blue-600 px-8 py-4 rounded-xl mt-6 w-full"
                               >
                                     <Text className="text-white text-center font-bold">
-                                          আবার শুরু করুন
+                                          Restart Quiz
                                     </Text>
                               </TouchableOpacity>
                         </View>
@@ -155,19 +159,29 @@ const Colorblind = () => {
 
                               {/* QUESTION COUNTER */}
                               <Text className="text-gray-500">
-                                    প্রশ্ন: {currentIndex + 1} / {shuffledQuiz.length}
+                                    Question: {currentIndex + 1} / {shuffledQuiz.length}
                               </Text>
 
                               <Text className="text-lg font-bold mt-2 mb-4 text-gray-800">
-                                    নিচের ছবিতে কত নম্বর দেখতে পাচ্ছেন?
+                                    What number do you see in the image?
                               </Text>
 
-                              {/* IMAGE */}
-                              <View className="bg-white p-6 rounded-2xl items-center mb-6 border border-gray-200">
+                              {/* IMAGE CARD WITH LOADING SPIN */}
+                              <View className="bg-white p-6 rounded-2xl items-center justify-center mb-6 border border-gray-200" style={{ minHeight: imageSize + 48 }}>
+                                    
+                                    {/* Image Spinner — শুধুমাত্র লোড হওয়ার সময় দেখাবে */}
+                                    {imageLoading && (
+                                          <View style={{ position: 'absolute', zIndex: 1 }}>
+                                                <ActivityIndicator size="small" color="#2563eb" />
+                                          </View>
+                                    )}
+
                                     <Image
                                           source={{ uri: currentQuiz.image }}
                                           style={{ width: imageSize, height: imageSize }}
                                           resizeMode="contain"
+                                          onLoadStart={() => setImageLoading(true)}
+                                          onLoadEnd={() => setImageLoading(false)}
                                     />
                               </View>
 
@@ -195,8 +209,8 @@ const Colorblind = () => {
                                     >
                                           <Text className="text-white text-center font-bold text-base">
                                                 {currentIndex === shuffledQuiz.length - 1
-                                                      ? "ফলাফল দেখুন"
-                                                      : "পরবর্তী প্রশ্ন →"}
+                                                      ? "View Results"
+                                                      : "Next Question →"}
                                           </Text>
                                     </TouchableOpacity>
                               )}

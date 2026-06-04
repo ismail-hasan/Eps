@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -12,29 +13,29 @@ import BottomNav from "../components/BottomNav";
 import MainHeader from "../components/MainHeader.jsx";
 
 // =====================
-// QUESTIONS DATA
+// TRANSLATED QUESTIONS DATA (ENGLISH)
 // =====================
 const quizData = [
-  { id: 1, question: "দক্ষিণ কোরিয়ার রাজধানীর নাম কী?", options: ["সিউল", "বুসান", "টোকিও", "ঢাকা"], answer: "সিউল" },
-  { id: 2, question: "EPS এর পূর্ণরূপ কী?", options: ["Employment Permit System", "Easy Permit System", "Employment People Service", "Employee Program System"], answer: "Employment Permit System" },
-  { id: 3, question: "কোরিয়ার মুদ্রার নাম কী?", options: ["ডলার", "ওন", "ইয়েন", "রুপি"], answer: "ওন" },
-  { id: 4, question: "বাংলাদেশের রাজধানী কী?", options: ["ঢাকা", "চট্টগ্রাম", "রাজশাহী", "খুলনা"], answer: "ঢাকা" },
-  { id: 5, question: "React Native কোন ভাষা?", options: ["Python", "Java", "JavaScript", "C++"], answer: "JavaScript" },
-  { id: 6, question: "HTML কী?", options: ["Structure", "Design", "DB", "OS"], answer: "Structure" },
-  { id: 7, question: "CSS কী?", options: ["Style", "Logic", "Backend", "DB"], answer: "Style" },
-  { id: 8, question: "Node.js কী?", options: ["Runtime", "Browser", "OS", "Game"], answer: "Runtime" },
-  { id: 9, question: "Git কী?", options: ["Version Control", "Design", "App", "DB"], answer: "Version Control" },
-  { id: 10, question: "CPU কী?", options: ["Brain", "Memory", "Disk", "Screen"], answer: "Brain" },
-  { id: 11, question: "RAM কী?", options: ["Memory", "CPU", "GPU", "Disk"], answer: "Memory" },
-  { id: 12, question: "Internet কী?", options: ["Network", "Software", "Hardware", "App"], answer: "Network" },
-  { id: 13, question: "API কী?", options: ["Interface", "OS", "DB", "Game"], answer: "Interface" },
-  { id: 14, question: "MongoDB কী?", options: ["Database", "Language", "Framework", "Tool"], answer: "Database" },
-  { id: 15, question: "React কী?", options: ["Library", "Database", "OS", "Tool"], answer: "Library" },
-  { id: 16, question: "JS কী?", options: ["Language", "DB", "OS", "Game"], answer: "Language" },
-  { id: 17, question: "Android Studio কী?", options: ["App Dev", "Game", "DB", "OS"], answer: "App Dev" },
-  { id: 18, question: "HTTP কী?", options: ["Protocol", "Language", "Tool", "OS"], answer: "Protocol" },
-  { id: 19, question: "HTTPS কী?", options: ["Secure Protocol", "Game", "App", "DB"], answer: "Secure Protocol" },
-  { id: 20, question: "SQL কী?", options: ["Language", "OS", "Tool", "App"], answer: "Language" },
+  { id: 1, question: "What is the capital of South Korea?", options: ["Seoul", "Busan", "Tokyo", "Dhaka"], answer: "Seoul" },
+  { id: 2, question: "What does EPS stand for?", options: ["Employment Permit System", "Easy Permit System", "Employment People Service", "Employee Program System"], answer: "Employment Permit System" },
+  { id: 3, question: "What is the currency of South Korea?", options: ["Dollar", "Won", "Yen", "Rupee"], answer: "Won" },
+  { id: 4, question: "What is the capital of Bangladesh?", options: ["Dhaka", "Chittagong", "Rajshahi", "Khulna"], answer: "Dhaka" },
+  { id: 5, question: "Which language is used in React Native?", options: ["Python", "Java", "JavaScript", "C++"], answer: "JavaScript" },
+  { id: 6, question: "What is HTML?", options: ["Structure", "Design", "DB", "OS"], answer: "Structure" },
+  { id: 7, question: "What is CSS?", options: ["Style", "Logic", "Backend", "DB"], answer: "Style" },
+  { id: 8, question: "What is Node.js?", options: ["Runtime", "Browser", "OS", "Game"], answer: "Runtime" },
+  { id: 9, question: "What is Git?", options: ["Version Control", "Design", "App", "DB"], answer: "Version Control" },
+  { id: 10, question: "What is the CPU often referred to?", options: ["Brain", "Memory", "Disk", "Screen"], answer: "Brain" },
+  { id: 11, question: "What is RAM?", options: ["Memory", "CPU", "GPU", "Disk"], answer: "Memory" },
+  { id: 12, question: "What is the Internet?", options: ["Network", "Software", "Hardware", "App"], answer: "Network" },
+  { id: 13, question: "What does API stand for in development?", options: ["Interface", "OS", "DB", "Game"], answer: "Interface" },
+  { id: 14, question: "What is MongoDB?", options: ["Database", "Language", "Framework", "Tool"], answer: "Database" },
+  { id: 15, question: "What is React?", options: ["Library", "Database", "OS", "Tool"], answer: "Library" },
+  { id: 16, question: "What is JS short for?", options: ["Language", "DB", "OS", "Game"], answer: "Language" },
+  { id: 17, question: "What is Android Studio used for?", options: ["App Dev", "Game", "DB", "OS"], answer: "App Dev" },
+  { id: 18, question: "What is HTTP?", options: ["Protocol", "Language", "Tool", "OS"], answer: "Protocol" },
+  { id: 19, question: "What is HTTPS?", options: ["Secure Protocol", "Game", "App", "DB"], answer: "Secure Protocol" },
+  { id: 20, question: "What is SQL primarily used for?", options: ["Language", "OS", "Tool", "App"], answer: "Language" },
 ];
 
 const getRandomQuestions = (count) => {
@@ -44,6 +45,7 @@ const getRandomQuestions = (count) => {
 const QuizPage = () => {
   const [started, setStarted] = useState(false);
   const [quizList, setQuizList] = useState([]);
+  const [loading, setLoading] = useState(false); // লোডিং স্পিন ট্র্যাকিং স্টেট
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState("");
@@ -58,11 +60,16 @@ const QuizPage = () => {
   const question = quizList[currentQuestion];
 
   // =====================
-  // START QUIZ
+  // START QUIZ WITH LOADER
   // =====================
   const startQuiz = (count) => {
-    setQuizList(getRandomQuestions(count));
-    setStarted(true);
+    setLoading(true);
+    // ডাটা রেডি হতে লেট হওয়া সিমুলেট করতে এবং স্পিনার দেখাতে ১ সেকেন্ড টাইমআউট
+    setTimeout(() => {
+      setQuizList(getRandomQuestions(count));
+      setStarted(true);
+      setLoading(false);
+    }, 800);
   };
 
   // =====================
@@ -144,19 +151,24 @@ const QuizPage = () => {
   return (
     <View className="flex-1 bg-gray-100 justify-between">
 
-      {/* WHITE TOP NAVIGATION BAR */}
-      {/* //top  */}
-
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
 
         {/* BLUE BANNER CARD */}
         <MainHeader />
 
+        {/* LOADING SPINNER */}
+        {loading && (
+          <View className="m-4 bg-white p-10 rounded-2xl shadow-sm border border-gray-100 justify-center items-center">
+            <ActivityIndicator size="large" color="#2563eb" />
+            <Text className="text-gray-500 mt-3 font-semibold text-sm">Preparing Quiz...</Text>
+          </View>
+        )}
+
         {/* QUIZ SETUP SCREEN */}
-        {!started && (
+        {!started && !loading && (
           <View className="m-4 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
             <Text className="text-base font-bold text-gray-800 mb-4 text-center">
-              কয়টি প্রশ্ন সমাধান করতে চান?
+              How many questions do you want to solve?
             </Text>
 
             <View className="flex-row flex-wrap justify-between">
@@ -235,7 +247,7 @@ const QuizPage = () => {
             <Text className="text-xl font-bold text-gray-800 mt-4">
               Quiz Complete!
             </Text>
-            <Text className="text-sm text-gray-400 mt-1">আপনার অর্জিত স্কোর</Text>
+            <Text className="text-sm text-gray-400 mt-1">Your Earned Score</Text>
             <Text className="text-5xl font-black text-blue-600 my-6">
               {score} / {quizList.length}
             </Text>
@@ -244,7 +256,7 @@ const QuizPage = () => {
               className="bg-blue-600 px-8 py-3.5 rounded-xl w-full"
             >
               <Text className="text-white font-bold text-center">
-                আবার শুরু করুন
+                Restart Quiz
               </Text>
             </TouchableOpacity>
           </View>

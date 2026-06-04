@@ -1,19 +1,16 @@
-// app/LessonImages.jsx
-
 import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   Image,
   Modal,
-  Platform,
   SafeAreaView,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 import {
@@ -30,16 +27,17 @@ import Animated, {
 
 import { Ionicons } from "@expo/vector-icons";
 import BottomNav from "../components/BottomNav";
-import { booksData } from "./constants/data";
 
+const BASE_URL = "https://eps-backend.vercel.app";
 const { width, height } = Dimensions.get("window");
-
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 5;
 
-/* ───────────────────────── Zoomable Image ───────────────────────── */
+/* ───────────────── Zoom Image Component ───────────────── */
 const ZoomableImage = ({ uri }) => {
+  const [imgLoading, setImgLoading] = useState(true); // মোডাল ইমেজের জন্য লোডিং স্টেট
+
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
 
@@ -66,18 +64,13 @@ const ZoomableImage = ({ uri }) => {
       if (scale.value > 1) {
         scale.value = withSpring(1);
         savedScale.value = 1;
-        translateX.value = withSpring(0);
-        translateY.value = withSpring(0);
       } else {
         scale.value = withSpring(2.5);
         savedScale.value = 2.5;
       }
     });
 
-  const gesture = Gesture.Simultaneous(
-    Gesture.Simultaneous(pinchGesture, panGesture),
-    doubleTap
-  );
+  const gesture = Gesture.Simultaneous(pinchGesture, panGesture, doubleTap);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -88,60 +81,84 @@ const ZoomableImage = ({ uri }) => {
   }));
 
   return (
-    <GestureDetector gesture={gesture}>
-      <Animated.View style={[styles.zoomContainer, animatedStyle]}>
-        <Image source={{ uri }} style={styles.fullImage} resizeMode="contain" />
-      </Animated.View>
-    </GestureDetector>
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      {/* মোডাল ইমেজ লোডিং স্পিনার */}
+      {imgLoading && (
+        <View style={StyleSheet.absoluteFillObject} className="justify-center items-center">
+          <ActivityIndicator size="large" color="#ffffff" />
+        </View>
+      )}
+
+      <GestureDetector gesture={gesture}>
+        <Animated.View style={[styles.zoomContainer, animatedStyle]}>
+          <Image
+            source={{ uri }}
+            style={styles.fullImage}
+            resizeMode="contain"
+            onLoadStart={() => setImgLoading(true)}
+            onLoadEnd={() => setImgLoading(false)}
+          />
+        </Animated.View>
+      </GestureDetector>
+    </View>
   );
 };
 
-/* ───────────────────────── Modal ───────────────────────── */
-const FullscreenModal = ({ visible, imageUri, onClose }) => {
-  if (!imageUri) return null;
+/* ───────────────── List Image Item Component ───────────────── */
+// মেইন লিস্টের প্রতিটি ইমেজের লোডিং আলাদাভাবে ট্র্যাক করার জন্য সাব-কম্পোনেন্ট
+const ListImageItem = ({ uri, onPress }) => {
+  const [loading, setLoading] = useState(true);
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <View style={styles.modalBg}>
-          <SafeAreaView style={styles.modalHeader}>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Text style={styles.closeBtnText}>✕</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.zoomHint}>
-              Pinch / double tap to zoom
-            </Text>
-          </SafeAreaView>
-
-          <View style={styles.imageWrapper}>
-            <ZoomableImage uri={imageUri} />
-          </View>
+    <TouchableOpacity onPress={onPress} style={styles.imageContainer}>
+      {loading && (
+        <View style={styles.spinnerOverlay}>
+          <ActivityIndicator size="small" color="#2563eb" />
         </View>
-      </GestureHandlerRootView>
-    </Modal>
+      )}
+      <Image
+        source={{ uri }}
+        style={styles.image}
+        onLoadStart={() => setLoading(true)}
+        onLoadEnd={() => setLoading(false)}
+      />
+    </TouchableOpacity>
   );
 };
 
-/* ───────────────────────── Main Screen ───────────────────────── */
-const LessonImages = () => {
-  const params = useLocalSearchParams();
+/* ───────────────── MAIN COMPONENT ───────────────── */
+export default function LessonImages() {
+  const { countryId, lessonId, lessonTitle } = useLocalSearchParams();
 
-  const countryId = String(params?.countryId || "");
-  const lessonId = String(params?.lessonId || "");
-  const lessonTitle = String(params?.lessonTitle || "Book View");
+  const [lesson, setLesson] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  // 🔥 NEW NESTED LOGIC
-  const country = booksData.find((c) => c.id === countryId);
+  useEffect(() => {
+    fetchLesson();
+  }, []);
 
-  const lesson = country?.lessons?.find(
-    (l) => l.lessonId === lessonId
-  );
+  const fetchLesson = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/book`);
+      const data = await res.json();
 
-  const filteredBooks =
+      const country = data.find((c) => c.id == countryId);
+      const foundLesson = country?.lessons?.find(
+        (l) => l.lessonId == lessonId
+      );
+
+      setLesson(foundLesson);
+    } catch (err) {
+      console.log("Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const images =
     lesson?.images?.map((img, index) => ({
       id: `${lessonId}-${index}`,
       image: img,
@@ -157,42 +174,21 @@ const LessonImages = () => {
     setSelectedImage(null);
   };
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={() => openImage(item.image)}
-      style={{ width }}
-    >
-      <View style={styles.cardContainer}>
-        <Image
-          source={{ uri: item.image }}
-          style={styles.cardImage}
-          resizeMode="contain"
-        />
-        <View style={styles.expandHint}>
-          <Text style={styles.expandHintText}>⤢ Tap to expand</Text>
-        </View>
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#fff" }}>
+        <ActivityIndicator size="large" color="#2563eb" />
+        <Text style={{ marginTop: 8, color: "#64748b" }}>Loading...</Text>
       </View>
-    </TouchableOpacity>
-  );
+    );
+  }
 
   return (
-    <SafeAreaView
-      style={[
-        styles.screen,
-        {
-          paddingTop:
-            Platform.OS === "android" ? StatusBar.currentHeight : 0,
-        },
-      ]}
-    >
+    <SafeAreaView style={styles.screen}>
       {/* HEADER */}
       <View style={styles.header}>
-        <TouchableOpacity
-
-          className="p-1"
-        >
-          <Ionicons onPress={(() => router.back())} name="arrow-back" size={24} color="#1e293b" />
+        <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Ionicons name="arrow-back" size={24} color="#1e293b" />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle} numberOfLines={1}>
@@ -202,83 +198,74 @@ const LessonImages = () => {
 
       {/* LIST */}
       <FlatList
-        data={filteredBooks}
+        data={images}
         keyExtractor={(item) => item.id}
-        renderItem={renderItem}
+        renderItem={({ item }) => (
+          <ListImageItem uri={item.image} onPress={() => openImage(item.image)} />
+        )}
+        contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              No images found
-            </Text>
-          </View>
-        }
       />
 
       {/* MODAL */}
-      <FullscreenModal
-        visible={modalVisible}
-        imageUri={selectedImage}
-        onClose={closeModal}
-      />
+      <Modal visible={modalVisible} transparent animationType="fade">
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <View style={styles.modalBg}>
+            {/* Close Button Header inside Modal */}
+            <SafeAreaView style={styles.modalHeader}>
+              <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
+                <Ionicons name="close" size={26} color="#ffffff" />
+                <Text style={{ color: "#fff", marginLeft: 4, fontWeight: "600" }}>Close</Text>
+              </TouchableOpacity>
+            </SafeAreaView>
+
+            <ZoomableImage uri={selectedImage} />
+          </View>
+        </GestureHandlerRootView>
+      </Modal>
 
       <BottomNav />
     </SafeAreaView>
   );
-};
+}
 
-export default LessonImages;
-
-/* ───────────────────────── Styles ───────────────────────── */
+/* ───────────────── STYLES ───────────────── */
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#fff" },
 
   header: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
+    padding: 14,
     borderBottomWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#f1f5f9",
   },
-
-  backBtn: {
-    backgroundColor: "#f3f4f6",
-    padding: 8,
-    borderRadius: 8,
-  },
-
-  backBtnText: { fontWeight: "600" },
 
   headerTitle: {
     marginLeft: 10,
     fontSize: 16,
     fontWeight: "700",
+    color: "#1e293b",
   },
 
-  listContent: { paddingBottom: 120 },
-
-  cardContainer: {
-    alignItems: "center",
-    padding: 10,
-  },
-
-  cardImage: {
-    width: width * 0.95,
+  imageContainer: {
+    width: width,
     height: height * 0.7,
-    borderRadius: 12,
-  },
-
-  expandHint: { alignSelf: "flex-end", marginRight: 10 },
-
-  expandHintText: { fontSize: 11, color: "#999" },
-
-  emptyContainer: {
-    marginTop: 100,
+    marginBottom: 12,
+    justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#f8fafc", // ইমেজ লোড হওয়ার সময় ব্যাকগ্রাউন্ড কালার
   },
 
-  emptyText: { color: "#999" },
+  image: {
+    width: "100%",
+    height: "100%",
+  },
+
+  spinnerOverlay: {
+    position: "absolute",
+    zIndex: 1,
+  },
 
   modalBg: {
     flex: 1,
@@ -286,22 +273,20 @@ const styles = StyleSheet.create({
   },
 
   modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 10,
+    position: "absolute",
+    top: 10,
+    left: 16,
+    zIndex: 10,
   },
 
-  closeBtn: {
-    backgroundColor: "#333",
-    padding: 8,
+  closeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: 20,
   },
-
-  closeBtnText: { color: "#fff" },
-
-  zoomHint: { color: "#aaa" },
-
-  imageWrapper: { flex: 1 },
 
   zoomContainer: {
     flex: 1,
@@ -310,7 +295,7 @@ const styles = StyleSheet.create({
   },
 
   fullImage: {
-    width: width,
-    height: height,
+    width,
+    height,
   },
 });

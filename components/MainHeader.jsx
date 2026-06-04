@@ -20,7 +20,7 @@ const MainHeader = ({
       return (
             <>
                   {/* Top Navbar */}
-                  <View className="bg-white px-5 pt-14 pb-4 flex-row items-center justify-between border-b border-gray-100">
+                  <View className="bg-white px-5 pt-5 pb-4 flex-row items-center justify-between border-b border-gray-100">
                         <TouchableOpacity
                               onPress={handleLeftPress} // 👈 ৪. ফাংশনটি এখানে সেট করুন
                               className="p-1"

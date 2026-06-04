@@ -24,9 +24,9 @@ const BottomNav = () => {
                   path: "/quiz",
             },
             {
-                  label: "Test",
+                  label: "Vocabulary",
                   icon: "document-text-outline",
-                  path: "/ubtexam",
+                  path: "/vocabulary",
             },
             {
                   label: "About",

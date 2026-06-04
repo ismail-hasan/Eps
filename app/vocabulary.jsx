@@ -1,40 +1,21 @@
-import React, { useState, useCallback, useRef } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  Alert,
-  Clipboard,
-  Platform,
-  TextInput,
+  ActivityIndicator,
   Animated,
+  Clipboard,
+  FlatList,
   Keyboard,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-
-// ─── Demo Data (Backend থেকে আসবে পরে) ───────────────────────────────────
-const DEMO_WORDS = [
-  { id: "1",  korean: "안전",   romanized: "An-jeon",      meaning_en: "Safety",             meaning_bn: "নিরাপত্তা",            category: "Safety"    },
-  { id: "2",  korean: "사고",   romanized: "Sa-go",        meaning_en: "Accident",            meaning_bn: "দুর্ঘটনা",             category: "Safety"    },
-  { id: "3",  korean: "작업",   romanized: "Jak-eop",      meaning_en: "Work / Task",         meaning_bn: "কাজ",                  category: "Work"      },
-  { id: "4",  korean: "주의",   romanized: "Ju-i",         meaning_en: "Caution / Attention", meaning_bn: "সতর্কতা",             category: "Safety"    },
-  { id: "5",  korean: "보호구", romanized: "Bo-ho-gu",     meaning_en: "Protective Gear",     meaning_bn: "সুরক্ষামূলক সরঞ্জাম", category: "Safety"    },
-  { id: "6",  korean: "월급",   romanized: "Wol-geup",     meaning_en: "Monthly Salary",      meaning_bn: "মাসিক বেতন",           category: "HR"        },
-  { id: "7",  korean: "근무",   romanized: "Geun-mu",      meaning_en: "Work / Duty",         meaning_bn: "দায়িত্ব পালন",        category: "Work"      },
-  { id: "8",  korean: "휴가",   romanized: "Hyu-ga",       meaning_en: "Vacation / Leave",    meaning_bn: "ছুটি",                 category: "HR"        },
-  { id: "9",  korean: "화재",   romanized: "Hwa-jae",      meaning_en: "Fire",                meaning_bn: "আগুন",                 category: "Emergency" },
-  { id: "10", korean: "대피",   romanized: "Dae-pi",       meaning_en: "Evacuation",          meaning_bn: "নিরাপদ স্থানে যাওয়া", category: "Emergency" },
-  { id: "11", korean: "계약",   romanized: "Gye-yak",      meaning_en: "Contract",            meaning_bn: "চুক্তি",               category: "HR"        },
-  { id: "12", korean: "작업장", romanized: "Jak-eop-jang", meaning_en: "Workplace",           meaning_bn: "কর্মক্ষেত্র",         category: "Work"      },
-];
-
-const TABS = ["All", "Bookmarked", "Recent"];
 
 // ─── Word Card ─────────────────────────────────────────────────────────────
-const WordCard = React.memo(({ item, isFavorite, onToggleFavorite, onCopy, copiedId }) => (
+const WordCard = React.memo(({ item, onCopy, copiedId }) => (
   <View
     style={{
       flexDirection: "row",
@@ -60,30 +41,17 @@ const WordCard = React.memo(({ item, isFavorite, onToggleFavorite, onCopy, copie
       ) : null}
     </View>
 
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
-      {/* Copy Icon */}
+    <View style={{ flexDirection: "row", alignItems: "center" }}>
+      {/* Copy Icon - Only copies the Korean word */}
       <TouchableOpacity
         onPress={() => onCopy(item)}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 6 }}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         style={{ padding: 8, borderRadius: 20, backgroundColor: "#F8FAFC" }}
       >
         <Ionicons
           name={copiedId === item.id ? "checkmark-done" : "copy-outline"}
           size={18}
           color={copiedId === item.id ? "#22C55E" : "#94A3B8"}
-        />
-      </TouchableOpacity>
-
-      {/* Star / Favorite */}
-      <TouchableOpacity
-        onPress={() => onToggleFavorite(item.id)}
-        hitSlop={{ top: 10, bottom: 10, left: 6, right: 10 }}
-        style={{ padding: 8 }}
-      >
-        <Ionicons
-          name={isFavorite ? "star" : "star-outline"}
-          size={22}
-          color={isFavorite ? "#FBBF24" : "#CBD5E1"}
         />
       </TouchableOpacity>
     </View>
@@ -94,15 +62,28 @@ const WordCard = React.memo(({ item, isFavorite, onToggleFavorite, onCopy, copie
 export default function Vocabulary() {
   const navigation = useNavigation();
 
-  const [activeTab, setActiveTab] = useState("All");
-  const [favorites, setFavorites] = useState(new Set(["1", "4", "5"]));
-  const [recentIds] = useState(["1", "3", "6", "9"]);
+  const [words, setWords] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
 
   const searchInputRef = useRef(null);
   const searchWidthAnim = useRef(new Animated.Value(0)).current;
+
+  // ── API থেকে ডাটা ফেচ করা ──
+  useEffect(() => {
+    fetch("https://eps-backend.vercel.app/vocabulary")
+      .then((res) => res.json())
+      .then((data) => {
+        setWords(data || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching vocabulary:", err);
+        setLoading(false);
+      });
+  }, []);
 
   // ── Open / Close Search ──
   const openSearch = () => {
@@ -125,40 +106,27 @@ export default function Vocabulary() {
     }).start();
   };
 
-  // ── Filtered Data ──
+  // ── Filtered Data (সার্চ ফিল্টারিং) ──
   const displayData = useCallback(() => {
-    let list = DEMO_WORDS;
-
-    if (activeTab === "Bookmarked") list = list.filter((w) => favorites.has(w.id));
-    else if (activeTab === "Recent") list = list.filter((w) => recentIds.includes(w.id));
+    let list = words;
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       list = list.filter(
         (w) =>
-          w.korean.includes(q) ||
-          w.romanized.toLowerCase().includes(q) ||
-          w.meaning_en.toLowerCase().includes(q) ||
-          w.meaning_bn.includes(q)
+          (w.korean && w.korean.includes(q)) ||
+          (w.romanized && w.romanized.toLowerCase().includes(q)) ||
+          (w.meaning_en && w.meaning_en.toLowerCase().includes(q)) ||
+          (w.meaning_bn && w.meaning_bn.includes(q))
       );
     }
 
     return list;
-  }, [activeTab, favorites, recentIds, searchQuery]);
+  }, [words, searchQuery]);
 
-  // ── Toggle Favorite ──
-  const handleToggleFavorite = useCallback((id) => {
-    setFavorites((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }, []);
-
-  // ── Copy ──
+  // ── Copy Function (শুধুমাত্র কোরিয়ান শব্দ কপি হবে) ──
   const handleCopy = useCallback((item) => {
-    const text = `${item.korean} (${item.romanized})\nMeaning: ${item.meaning_en}\nঅর্থ: ${item.meaning_bn}`;
-    Clipboard.setString(text);
+    Clipboard.setString(item.korean);
     setCopiedId(item.id);
     setTimeout(() => setCopiedId(null), 2000);
   }, []);
@@ -241,7 +209,7 @@ export default function Vocabulary() {
       </View>
 
       {/* ── Banner Card ── */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 4 }}>
+      <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16 }}>
         <View
           style={{
             backgroundColor: "#FF8C00",
@@ -286,83 +254,35 @@ export default function Vocabulary() {
         </View>
       </View>
 
-      {/* ── Tab Bar ── */}
-      <View
-        style={{
-          flexDirection: "row",
-          paddingHorizontal: 16,
-          marginTop: 16,
-          borderBottomWidth: 1,
-          borderBottomColor: "#F1F5F9",
-        }}
-      >
-        {TABS.map((tab) => {
-          const isActive = activeTab === tab;
-          return (
-            <TouchableOpacity
-              key={tab}
-              onPress={() => setActiveTab(tab)}
-              style={{
-                marginRight: 24,
-                paddingBottom: 10,
-                borderBottomWidth: isActive ? 2.5 : 0,
-                borderBottomColor: "#FF8C00",
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: isActive ? "700" : "500",
-                  color: isActive ? "#FF8C00" : "#94A3B8",
-                }}
-              >
-                {tab}
+      {/* ── Word List / Loading Handling ── */}
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color="#FF8C00" />
+        </View>
+      ) : (
+        <FlatList
+          data={data}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <WordCard
+              item={item}
+              onCopy={handleCopy}
+              copiedId={copiedId}
+            />
+          )}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          ListEmptyComponent={
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 80 }}>
+              <Ionicons name="search-outline" size={48} color="#E2E8F0" />
+              <Text style={{ fontSize: 15, color: "#CBD5E1", marginTop: 12, fontWeight: "600" }}>
+                কোনো শব্দ পাওয়া যায়নি
               </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      {/* ── Word List ── */}
-      <FlatList
-        data={data}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <WordCard
-            item={item}
-            isFavorite={favorites.has(item.id)}
-            onToggleFavorite={handleToggleFavorite}
-            onCopy={handleCopy}
-            copiedId={copiedId}
-          />
-        )}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, flexGrow: 1 }}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        ListEmptyComponent={
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 80 }}>
-            <Ionicons name="search-outline" size={48} color="#E2E8F0" />
-            <Text style={{ fontSize: 15, color: "#CBD5E1", marginTop: 12, fontWeight: "600" }}>
-              {searchQuery ? "কোনো শব্দ পাওয়া যায়নি" : activeTab === "Bookmarked" ? "কোনো Bookmark নেই" : "কোনো শব্দ নেই"}
-            </Text>
-          </View>
-        }
-      />
+            </View>
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
-
-/*
- * ─── Backend Integration ────────────────────────────────────────────────────
- *
- *   const [words, setWords] = useState([]);
- *
- *   useEffect(() => {
- *     fetch('https://your-api.com/api/vocabulary')
- *       .then(res => res.json())
- *       .then(data => setWords(data));
- *   }, []);
- *
- * DEMO_WORDS replace করে words state use করো।
- * ─────────────────────────────────────────────────────────────────────────
- */

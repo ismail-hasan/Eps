@@ -6,6 +6,7 @@ import {
 import { router } from "expo-router";
 import React from "react";
 import {
+  Alert,
   ScrollView,
   StatusBar,
   Text,
@@ -23,7 +24,6 @@ const features = [
     icon: <MaterialCommunityIcons name="book-open-variant" size={28} color="#2563eb" />,
     bg: "bg-blue-100",
     route: "/bookNav",
-
   },
   {
     id: 2,
@@ -32,7 +32,6 @@ const features = [
     icon: <Ionicons name="help-circle" size={28} color="#7c3aed" />,
     bg: "bg-purple-100",
     route: "/quiz",
-
   },
   {
     id: 3,
@@ -53,10 +52,11 @@ const features = [
   {
     id: 5,
     title: "UBT-TEST",
-    route: "/ubtexam",
+    route: "",
     subtitle: "Track journey",
     icon: <Ionicons name="document-text-outline" size={28} color="#0284c7" />,
     bg: "bg-sky-100",
+    isComingSoon: true, // কামিং সুন ট্র্যাক করার জন্য ফ্ল্যাগ
   },
   {
     id: 6,
@@ -65,7 +65,6 @@ const features = [
     icon: <Ionicons name="man" size={28} color="#e11d48" />,
     bg: "bg-rose-100",
     route: "/About",
-
   },
 ];
 
@@ -77,10 +76,10 @@ const Home = () => {
       {/* Scroll Content */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 20 }}
       >
         {/* Header Section */}
-        <View className="bg-blue-900 px-5 pt-12 pb-8 rounded-b-3xl">
+        <View className="bg-blue-900 px-5 pt-6 pb-8 rounded-b-3xl">
           {/* Top Bar */}
           <View className="flex-row items-center justify-between mb-6">
             <TouchableOpacity className="p-2 bg-blue-800 rounded-xl">
@@ -133,8 +132,17 @@ const Home = () => {
               <TouchableOpacity
                 key={item.id}
                 activeOpacity={0.85}
-                onPress={() => item.route && router.push(item.route)}
-                className="bg-white rounded-2xl p-5 mb-4 flex-row items-center border border-gray-100 shadow-sm"
+                onPress={() => {
+                  if (item.isComingSoon || !item.route) {
+                    Alert.alert(
+                      "Coming Soon",
+                      "This feature will be available in the next update!"
+                    );
+                  } else {
+                    router.push(item.route);
+                  }
+                }}
+                className="bg-white rounded-2xl p-4 mb-4 flex-row items-center border border-gray-100 shadow-sm"
                 style={{ width: "48.5%" }}
               >
                 <View className={`${item.bg} rounded-xl p-3 mr-3`}>

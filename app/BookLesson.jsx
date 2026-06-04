@@ -1,7 +1,6 @@
-// app/BookLesson.jsx
-
 import { router, useLocalSearchParams } from "expo-router";
 import {
+  ActivityIndicator,
   FlatList,
   Platform,
   SafeAreaView,
@@ -12,16 +11,44 @@ import {
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
-import { booksData } from "./constants/data";
+import { useEffect, useState } from "react";
+
+const BASE_URL = "https://eps-backend.vercel.app";
 
 export default function BookLesson() {
   const { countryId } = useLocalSearchParams();
 
-  // country বের করা
-  const country = booksData.find((c) => c.id === countryId);
+  const [country, setCountry] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // lessons বের করা
+  useEffect(() => {
+    fetchCountry();
+  }, []);
+
+  const fetchCountry = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/book`);
+      const data = await res.json();
+
+      const found = data.find((c) => c.id === countryId);
+
+      setCountry(found);
+    } catch (err) {
+      console.log("Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const lessons = country?.lessons || [];
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView
@@ -36,7 +63,7 @@ export default function BookLesson() {
           onPress={() => router.back()}
           className="mr-4 bg-gray-100 px-3 py-1.5 rounded-lg"
         >
-          <Ionicons onPress={(() => router.back())} name="arrow-back" size={24} color="#1e293b" />
+          <Ionicons name="arrow-back" size={24} color="#1e293b" />
         </TouchableOpacity>
 
         <Text className="text-lg font-bold text-gray-800">
@@ -68,10 +95,10 @@ export default function BookLesson() {
               <Text className="font-medium text-gray-800 text-sm">
                 {item.title}
               </Text>
+
               <Text className="text-blue-500 font-bold text-lg">➔</Text>
             </TouchableOpacity>
           )}
-          contentContainerStyle={{ paddingBottom: 80 }}
         />
       </View>
     </SafeAreaView>
