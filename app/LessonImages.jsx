@@ -193,7 +193,7 @@ export default function LessonImages() {
 
       setLesson(foundLesson || null);
     } catch (err) {
-      console.log("Error:", err);
+      // console.log("Error:", err);
     } finally {
       setLoading(false);
     }

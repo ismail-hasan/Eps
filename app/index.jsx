@@ -87,7 +87,7 @@ const Home = () => {
             </TouchableOpacity>
 
             <Text className="text-white text-lg font-bold tracking-wider">
-              EPS TOPIC
+              EPS TOPIK
             </Text>
 
             <TouchableOpacity className="p-2 bg-blue-800 rounded-xl">
@@ -102,7 +102,7 @@ const Home = () => {
                 Welcome to
               </Text>
               <Text className="text-white text-2xl font-black tracking-tight">
-                EPS TOPIC HERO
+                EPS TOPIK HERO
               </Text>
               <Text className="text-blue-100 text-xs mt-2 leading-relaxed">
                 Your complete solution for{"\n"}EPS-TOPIK preparation.

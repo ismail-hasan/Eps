@@ -36,7 +36,7 @@ const BottomNav = () => {
   ];
 
   return (
-    <SafeAreaView>
+    <SafeAreaView edges={['bottom']}>
       <View
         className="bg-white border-t border-gray-200 flex-row justify-around pt-3 px-2 shadow-lg"
         style={{
