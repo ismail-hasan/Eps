@@ -74,9 +74,7 @@ export default function BookLesson() {
   return (
     <SafeAreaView
       className="flex-1 bg-gray-50"
-      style={{
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-      }}
+      
     >
       {/* Header */}
       <View className="flex-row items-center p-4 border-b border-gray-200 bg-white">

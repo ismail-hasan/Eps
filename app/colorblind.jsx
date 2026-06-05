@@ -5,13 +5,13 @@ import { useEffect, useState } from "react";
 import {
       ActivityIndicator,
       Image,
-      SafeAreaView,
       ScrollView,
       Text,
       TouchableOpacity,
       useWindowDimensions,
       View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // ১. প্রথমে একটি Query Client তৈরি করে নিলাম
 const queryClient = new QueryClient();
@@ -128,7 +128,7 @@ const ColorblindContent = () => {
       return (
             <SafeAreaView className="flex-1 bg-white">
                   {/* HEADER */}
-                  <View className="bg-blue-600 py-4 px-4 flex-row justify-between items-center">
+                  <View className="bg-blue-600 py-4 px-4 flex-row justify-between items-center mb-9">
                         <TouchableOpacity onPress={() => router.back()}>
                               <Ionicons name="arrow-back" size={24} color="white" />
                         </TouchableOpacity>

@@ -6,8 +6,7 @@ import {
   FlatList,
   Image,
   Modal,
-  Platform, // 🚀 এই যে ভাই, প্ল্যাটফর্ম ইম্পোর্ট ঠিক করে দেওয়া হলো!
-  SafeAreaView,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -27,7 +26,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { Ionicons } from "@expo/vector-icons";
-import BottomNav from "../components/BottomNav";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const BASE_URL = "https://eps-backend.vercel.app";
 const { width, height } = Dimensions.get("window");
@@ -268,7 +267,7 @@ export default function LessonImages() {
         </GestureHandlerRootView>
       </Modal>
 
-      <BottomNav />
+      {/* <BottomNav /> */}
     </SafeAreaView>
   );
 }

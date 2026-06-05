@@ -70,7 +70,7 @@ const features = [
 
 const Home = () => {
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={["left", "right"]}>
+    <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar barStyle="light-content" backgroundColor="#1e3a8a" />
 
       {/* Scroll Content */}

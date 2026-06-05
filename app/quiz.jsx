@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 
+import { SafeAreaView } from "react-native-safe-area-context";
 import BottomNav from "../components/BottomNav";
 import MainHeader from "../components/MainHeader.jsx";
 
@@ -29,10 +30,10 @@ const getRandomQuestions = (data, count) => {
 };
 
 // ==========================================
-// মূল কুইজ স্ক্রিন (ভেতরের লজিক একদম সেম আছে)
+// মূল কুইজ স্ক্রিন
 // ==========================================
 const QuizContent = () => {
-  // TanStack Query দিয়ে ডেটা ফেচিং
+  // TanStack Query দিয়ে ডেটা ফেচিং
   const { data: allQuestions, isLoading: isApiLoading, error } = useQuery({
     queryKey: ["quizData"],
     queryFn: fetchQuizData,
@@ -112,106 +113,109 @@ const QuizContent = () => {
   };
 
   return (
-    <View className="flex-1 bg-gray-100 justify-between">
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        <MainHeader title="Quiz Zone" subtitle1="Test your knowledge and win" cardIcon="trophy" />
+    // মূল ভিউ-কে SafeAreaView দিয়ে মুড়িয়ে দেওয়া হলো যেন নচ বা নিচের বারে কন্টেন্ট কেটে না যায়
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+      <View className="flex-1 justify-between">
+        <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+          <MainHeader title="Quiz Zone" subtitle1="Test your knowledge and win" cardIcon="trophy" />
 
-        {/* লোডিং স্টেট */}
-        {isApiLoading && (
-          <View className="m-4 bg-white p-10 rounded-2xl justify-center items-center">
-            <ActivityIndicator size="large" color="#2563eb" />
-            <Text className="text-gray-500 mt-3 font-semibold text-sm">Loading Questions...</Text>
-          </View>
-        )}
-
-        {/* এরর স্টেট */}
-        {error && (
-          <View className="m-4 bg-red-50 p-6 rounded-2xl items-center">
-            <Text className="text-red-600 font-bold">Failed to load quiz data</Text>
-          </View>
-        )}
-
-        {/* কুইজ সেটআপ স্ক্রিন (প্রশ্ন সংখ্যা সিলেক্ট করার অপশন) */}
-        {!started && !isApiLoading && !error && (
-          <View className="m-4 bg-white p-5 rounded-2xl shadow-sm">
-            <Text className="text-base font-bold text-gray-800 mb-4 text-center">
-              How many questions do you want to solve?
-            </Text>
-            <View className="flex-row flex-wrap justify-between">
-              {[5, 10, 20, 30].map((num) => (
-                <TouchableOpacity
-                  key={num}
-                  onPress={() => startQuiz(num)}
-                  className="bg-blue-600 p-4 rounded-xl mb-4"
-                  style={{ width: "47%" }}
-                >
-                  <Text className="text-white text-center font-bold">{num} Questions</Text>
-                </TouchableOpacity>
-              ))}
+          {/* লোডিং স্টেট */}
+          {isApiLoading && (
+            <View className="m-4 bg-white p-10 rounded-2xl justify-center items-center">
+              <ActivityIndicator size="large" color="#2563eb" />
+              <Text className="text-gray-500 mt-3 font-semibold text-sm">Loading Questions...</Text>
             </View>
-          </View>
-        )}
+          )}
 
-        {/* কুইজ খেলার স্ক্রিন */}
-        {started && !showResult && question && (
-          <View className="m-4 bg-white p-5 rounded-2xl shadow-sm">
-            <View className="flex-row justify-between items-center mb-5">
-              <Text className="font-bold text-blue-600 text-xs">
-                QUESTION: {currentQuestion + 1}/{quizList.length}
-              </Text>
-              <Text className={`font-bold text-xs ${timeLeft <= 10 ? "text-red-600" : "text-green-600"}`}>
-                ⏱ {timeLeft}s
-              </Text>
+          {/* এরর স্টেট */}
+          {error && (
+            <View className="m-4 bg-red-50 p-6 rounded-2xl items-center">
+              <Text className="text-red-600 font-bold">Failed to load quiz data</Text>
             </View>
+          )}
 
-            <Text className="text-lg font-bold text-gray-800 mb-6 leading-7">
-              {question.question}
-            </Text>
+          {/* কুইজ সেটআপ স্ক্রিন */}
+          {!started && !isApiLoading && !error && (
+            <View className="m-4 bg-white p-5 rounded-2xl shadow-sm">
+              <Text className="text-base font-bold text-gray-800 mb-4 text-center">
+                How many questions do you want to solve?
+              </Text>
+              <View className="flex-row flex-wrap justify-between">
+                {[5, 10, 20, 30].map((num) => (
+                  <TouchableOpacity
+                    key={num}
+                    onPress={() => startQuiz(num)}
+                    className="bg-blue-600 p-4 rounded-xl mb-4"
+                    style={{ width: "47%" }}
+                  >
+                    <Text className="text-white text-center font-bold">{num} Questions</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
 
-            {question.options?.map((option, i) => {
-              const isCorrect = option === question.answer;
-              const isWrong = showCorrect && selectedAnswer === option && option !== question.answer;
+          {/* কুইজ খেলার স্ক্রিন */}
+          {started && !showResult && question && (
+            <View className="m-4 bg-white p-5 rounded-2xl shadow-sm">
+              <View className="flex-row justify-between items-center mb-5">
+                <Text className="font-bold text-blue-600 text-xs">
+                  QUESTION: {currentQuestion + 1}/{quizList.length}
+                </Text>
+                <Text className={`font-bold text-xs ${timeLeft <= 10 ? "text-red-600" : "text-green-600"}`}>
+                  ⏱ {timeLeft}s
+                </Text>
+              </View>
 
-              return (
-                <TouchableOpacity
-                  key={i}
-                  disabled={answered}
-                  onPress={() => handleAnswer(option)}
-                  className={`p-4 rounded-xl mb-3 border ${showCorrect && isCorrect
-                    ? "bg-green-500 border-green-600"
-                    : isWrong
-                      ? "bg-red-500 border-red-600"
-                      : "bg-gray-50 border-gray-200"
-                    }`}
-                >
-                  <Text className={`font-semibold text-sm ${showCorrect && (isCorrect || isWrong) ? "text-white" : "text-gray-800"}`}>
-                    {option}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        )}
+              <Text className="text-lg font-bold text-gray-800 mb-6 leading-7">
+                {question.question}
+              </Text>
 
-        {/* রেজাল্ট স্ক্রিন */}
-        {showResult && (
-          <View className="m-4 bg-white p-6 rounded-2xl items-center shadow-sm">
-            <Ionicons name="trophy" size={64} color="#eab308" />
-            <Text className="text-xl font-bold text-gray-800 mt-4">Quiz Complete!</Text>
-            <Text className="text-5xl font-black text-blue-600 my-6">{score} / {quizList.length}</Text>
-            <TouchableOpacity onPress={restart} className="bg-blue-600 px-8 py-3.5 rounded-xl w-full">
-              <Text className="text-white font-bold text-center">Restart Quiz</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </ScrollView>
+              {question.options?.map((option, i) => {
+                const isCorrect = option === question.answer;
+                const isWrong = showCorrect && selectedAnswer === option && option !== question.answer;
 
-      <BottomNav />
-    </View>
+                return (
+                  <TouchableOpacity
+                    key={i}
+                    disabled={answered}
+                    onPress={() => handleAnswer(option)}
+                    className={`p-4 rounded-xl mb-3 border ${showCorrect && isCorrect
+                      ? "bg-green-500 border-green-600"
+                      : isWrong
+                        ? "bg-red-500 border-red-600"
+                        : "bg-gray-50 border-gray-200"
+                      }`}
+                  >
+                    <Text className={`font-semibold text-sm ${showCorrect && (isCorrect || isWrong) ? "text-white" : "text-gray-800"}`}>
+                      {option}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+
+          {/* রেজাল্ট স্ক্রিন */}
+          {showResult && (
+            <View className="m-4 bg-white p-6 rounded-2xl items-center shadow-sm">
+              <Ionicons name="trophy" size={64} color="#eab308" />
+              <Text className="text-xl font-bold text-gray-800 mt-4">Quiz Complete!</Text>
+              <Text className="text-5xl font-black text-blue-600 my-6">{score} / {quizList.length}</Text>
+              <TouchableOpacity onPress={restart} className="bg-blue-600 px-8 py-3.5 rounded-xl w-full">
+                <Text className="text-white font-bold text-center">Restart Quiz</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </ScrollView>
+
+        <BottomNav />
+      </View>
+    </SafeAreaView>
   );
 };
 
-// ৪. মূল এক্সপোর্ট: এখানে আমরা `QueryClientProvider` দিয়ে কুইজ স্ক্রিনটিকে মুড়িয়ে দিয়েছি
+// ৪. মূল এক্সপোর্ট
 const QuizPage = () => {
   return (
     <QueryClientProvider client={queryClient}>

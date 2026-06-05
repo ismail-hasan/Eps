@@ -153,7 +153,7 @@ const VocabularyContent = () => {
   });
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }} edges={["top"]}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }} >
       {/* ── Header ── */}
       <View
         style={{

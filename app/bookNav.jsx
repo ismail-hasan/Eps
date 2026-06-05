@@ -3,15 +3,14 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
-  Platform,
-  SafeAreaView,
-  StatusBar,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
+
 import { useEffect, useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 import MainHeader from "../components/MainHeader";
 
 const BASE_URL = "https://eps-backend.vercel.app";
@@ -44,14 +43,13 @@ export default function NavBook() {
 
   return (
     <>
-      <MainHeader title="Reading Hub" subtitle1="Keep learning, keep growing" cardIcon="book-outline" />
+
 
       <SafeAreaView
-        className="flex-1 bg-gray-50"
-        style={{
-          paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-        }}
+        style={{ flex: 1, backgroundColor: "#FFFFFF" }}
+
       >
+        <MainHeader title="Reading Hub" subtitle1="Keep learning, keep growing" cardIcon="book-outline" />
         <View className="flex-1 px-2">
 
           <Text className="text-xl font-bold text-gray-900 mb-4 px-2">
