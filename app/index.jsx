@@ -26,6 +26,14 @@ const features = [
     route: "/bookNav",
   },
   {
+    id: 22,
+    title: "new bookss",
+    subtitle: "Falto",
+    icon: <Ionicons name="help-circle" size={45} color="#7c3aed" />,
+    bg: "bg-red-500",
+    route: "/epsbook",
+  },
+  {
     id: 2,
     title: "Quiz",
     subtitle: "Test knowledge",
@@ -52,11 +60,19 @@ const features = [
   {
     id: 5,
     title: "UBT-TEST",
-    route: "",
+    route: "ubtexam",
     subtitle: "Track journey",
     icon: <Ionicons name="document-text-outline" size={28} color="#0284c7" />,
     bg: "bg-sky-100",
-    isComingSoon: true, // কামিং সুন ট্র্যাক করার জন্য ফ্ল্যাগ
+    // isComingSoon: true, // কামিং সুন ট্র্যাক করার জন্য ফ্ল্যাগ
+  },
+  {
+    id: 55,
+    title: "DEmoUBT-TEST",
+    route: "examSection",
+    subtitle: "Track journey",
+    icon: <Ionicons name="document-text-outline" size={58} color="#0284c7" />,
+    bg: "bg-dark-900",
   },
   {
     id: 6,
