@@ -20,7 +20,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.coffeecoderx.isk"
+      "package": "com.coffeecoderx.iskapp"
     },
     "web": {
       "output": "static",
